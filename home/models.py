@@ -3,9 +3,9 @@ from django.db import models
 # Create your models here.
 class User(models.Model):
     name = models.CharField(max_length=200)
-    mail_id = models.EmailField()
+    mail_id = models.EmailField(unique=True)
     password = models.CharField(max_length=501)
-    skype_id = models.CharField(max_length=100)
+    skype_id = models.CharField(max_length=100,unique=True)
     project = models.CharField(max_length=100)
     posts = models.JSONField(null=True)
     manager = models.ForeignKey('User',null=True,on_delete=models.CASCADE)
