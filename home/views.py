@@ -3,8 +3,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import *
 from .serializers import *
-import json
-
 from rest_framework.views import APIView
 
 # Create your views here.
@@ -12,7 +10,9 @@ from rest_framework.views import APIView
 class register(APIView):
     def post(self,request):
         try:
-            serializer = UserSerializer(data=request.data)
+            data = request.data
+            data['password']=make_password(data['password'])
+            serializer = UserSerializer(data=data)
             if(serializer.is_valid()):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)

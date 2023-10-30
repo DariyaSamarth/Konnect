@@ -8,7 +8,7 @@ class User(models.Model):
     skype_id = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
     posts = models.JSONField(null=True)
-    manager = models.ForeignKey('User',on_delete=models.CASCADE)
+    manager = models.ForeignKey('User',null=True,on_delete=models.CASCADE)
     skills = models.JSONField(null = True)
     links = models.JSONField(null = True)
 
