@@ -16,9 +16,9 @@ class Post(models.Model):
     content = models.TextField()
     owner = models.ForeignKey("User",on_delete=models.CASCADE)
     date_created = models.DateField()
-    likes = models.IntegerField()
-    comments = models.JSONField()
-    tags = models.JSONField()
+    likes = models.IntegerField(null=True)
+    comments = models.JSONField(null=True)
+    tags = models.JSONField(null=True)
 
 class comment(models.Model):
     owner = models.ForeignKey("User",on_delete=models.CASCADE)
