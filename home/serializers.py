@@ -25,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
             'content',
             'owner',
             'date_created',
-            'likes',
+            'upvotes',
             'comments',
             'tags' 
             ]
@@ -38,6 +38,6 @@ class CommentSerializer(serializers.ModelSerializer):
             'content',
             'owner',
             'date_created',
-            'likes',
+            'upvotes',
             'post'
             ]

@@ -152,7 +152,7 @@ class commentOnPost(APIView):
             print(str(e))
             return Response(str(e),status =status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class likePost(APIView):
+class upvotePost(APIView):
     def put(self,request):
         try:
             post = request.query_params['post']
@@ -165,12 +165,12 @@ class likePost(APIView):
                 post_json = JSONRenderer().render(data=post_serializer.data)
                 post = json.loads(post_json)
 
-                post['likes']=post['likes']+1
+                post['upvotes']=post['upvotes']+1
                 post_serializer = PostSerializer(post_QS,data=post,partial=True)
 
                 if(post_serializer.is_valid()):
                     post_serializer.save()
-                    return Response(data={"message":"post liked"}, status=status.HTTP_200_OK)
+                    return Response(data={"message":"post upvoted"}, status=status.HTTP_200_OK)
                 return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
@@ -180,7 +180,7 @@ class likePost(APIView):
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class likeComment(APIView):
+class upvoteComment(APIView):
     def put(self,request):
         try:
             com = request.query_params['comment']
@@ -192,12 +192,12 @@ class likeComment(APIView):
                 comment_json = JSONRenderer().render(data=comment_serializer.data)
                 com = json.loads(comment_json)
 
-                com['likes']=com['likes']+1
+                com['upvotes']=com['upvotes']+1
                 comment_serializer = CommentSerializer(comment_QS,data=com,partial=True)
 
                 if(comment_serializer.is_valid()):
                     comment_serializer.save()
-                    return Response(data={"message":"comment liked"}, status=status.HTTP_200_OK)
+                    return Response(data={"message":"comment upvoted"}, status=status.HTTP_200_OK)
                 return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,7 +213,7 @@ class deleteComment(APIView):
             com = request.query_params['comment']
             user = request.data['user']
             flag = comment.objects.filter(id=com).exists() and User.objects.filter(id=user).exists()
-
+            
             if(flag):
                 comment_QS = comment.objects.get(id=com)
                 comment_serializer = CommentSerializer(comment_QS)
@@ -246,6 +246,58 @@ class deleteComment(APIView):
 
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
 
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class deletePost(APIView):
+    def delete(self,request):
+        try:
+            post = request.query_params['post']
+            user = request.data['user']
+            flag = Post.objects.filter(id=post).exists() and User.objects.filter(id=user).exists()
+            
+            if(flag):
+
+                post_QS = Post.objects.get(id=post)
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+                checker = user == post['owner']
+                
+                if(checker):
+                    
+                    user_QS = User.objects.get(id=user)
+                    user_serializer = UserSerializer(user_QS)
+                    user_json = JSONRenderer().render(data=user_serializer.data)
+                    user = json.loads(user_json)
+                    print("reached here")
+
+                    posts = json.loads(user['posts'])
+                    id = str(post['id'])
+                    posts.pop(id)
+                    user['posts'] = json.dumps(posts)
+
+                    user_serializer = UserSerializer(user_QS,data=user,partial=True)
+
+                    if(user_serializer.is_valid()):
+
+                        comments = json.loads(post['comments'])
+                        for id in comments:
+                            comment_QS = comment.objects.get(id=id)
+                            comment_QS.delete()
+                        post_QS.delete()
+                        user_serializer.save()
+                        return Response(data={"message":"post deleted"}, status=status.HTTP_201_CREATED)
+
+                    return Response(data=user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response(
+                    data = {"message":"unauthorised delete"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )                
+            
+            return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
