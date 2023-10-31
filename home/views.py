@@ -107,4 +107,50 @@ class createPost(APIView):
             return Response(str(e),status =status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class commentOnPost(APIView):
+    def post(self,request):
+        try:
+            # checking if owner and post exist
+            post = request.query_params['post']
+            owner = request.data['owner']
+            flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
+
+            if(flag):
+                data = request.data
+                data['post']=post
+                data['date_created']= date.today()
+                comment_seializer = CommentSerializer(data=data)
+                # creating the comment
+                if(comment_seializer.is_valid()):
+                    comment_seializer.save()
+                    comment_json = JSONRenderer().render(data=comment_seializer.data)
+                    comment = json.loads(comment_json)
+
+                    #finding the post
+                    post_QS = Post.objects.get(id=post)
+                    post_serializer = PostSerializer(post_QS)
+                    post_json = JSONRenderer().render(data=post_serializer.data)
+                    post = json.loads(post_json)
+
+                    #updating the comment on the post
+                    comments = {}
+                    if(post['comments']):
+                        comments = json.loads(post['comments'])
+                    comments[comment['id']]=comment['content']
+                    post['comments']=json.dumps(comments)
+
+                    post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                    if(post_serializer.is_valid()):
+                        post_serializer.save()
+                        return Response(data=comment_seializer.data, status=status.HTTP_201_CREATED)
+                    return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response(data=comment_seializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(data={"message":"post or owner data incorrect"},status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status =status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class nextApi(APIView):
     pass

@@ -29,3 +29,15 @@ class PostSerializer(serializers.ModelSerializer):
             'comments',
             'tags' 
             ]
+        
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = comment
+        fields = [
+            'id',
+            'content',
+            'owner',
+            'date_created',
+            'likes',
+            'post'
+            ]

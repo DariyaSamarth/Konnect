@@ -8,4 +8,9 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['id','owner']
+    list_display = ['id','owner','comments','likes']
+
+
+@admin.register(comment)
+class commentAdmin(admin.ModelAdmin):
+    list_display = ['id','owner','post','content','likes']
