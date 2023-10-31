@@ -22,5 +22,8 @@ urlpatterns = [
     path('register/',views.register.as_view()),
     path('login/',views.login.as_view()),
     path('create-post/',views.createPost.as_view()),
-    path('add-comment/',views.commentOnPost.as_view())
+    path('add-comment/',views.commentOnPost.as_view()),
+    path('like-post/',views.likePost.as_view()),
+    path('like-comment/',views.likeComment.as_view()),
+    path('delete-comment/',views.deleteComment.as_view())
 ]

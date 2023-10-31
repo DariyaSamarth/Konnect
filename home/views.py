@@ -152,5 +152,100 @@ class commentOnPost(APIView):
             print(str(e))
             return Response(str(e),status =status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class nextApi(APIView):
-    pass
+class likePost(APIView):
+    def put(self,request):
+        try:
+            post = request.query_params['post']
+            owner = request.data['owner']
+            flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
+
+            if(flag):
+                post_QS = Post.objects.get(id=post)
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+
+                post['likes']=post['likes']+1
+                post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                if(post_serializer.is_valid()):
+                    post_serializer.save()
+                    return Response(data={"message":"post liked"}, status=status.HTTP_200_OK)
+                return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class likeComment(APIView):
+    def put(self,request):
+        try:
+            com = request.query_params['comment']
+            owner = request.data['owner']
+            flag = User.objects.filter(id=owner).exists() and comment.objects.filter(id=com).exists()
+            if(flag):
+                comment_QS = comment.objects.get(id=com)
+                comment_serializer = CommentSerializer(comment_QS)
+                comment_json = JSONRenderer().render(data=comment_serializer.data)
+                com = json.loads(comment_json)
+
+                com['likes']=com['likes']+1
+                comment_serializer = CommentSerializer(comment_QS,data=com,partial=True)
+
+                if(comment_serializer.is_valid()):
+                    comment_serializer.save()
+                    return Response(data={"message":"comment liked"}, status=status.HTTP_200_OK)
+                return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class deleteComment(APIView):
+    def delete(self,request):
+        try:
+            com = request.query_params['comment']
+            user = request.data['user']
+            flag = comment.objects.filter(id=com).exists() and User.objects.filter(id=user).exists()
+
+            if(flag):
+                comment_QS = comment.objects.get(id=com)
+                comment_serializer = CommentSerializer(comment_QS)
+                comment_json = JSONRenderer().render(data=comment_serializer.data)
+                com = json.loads(comment_json)
+
+                post_QS = Post.objects.get(id=com['post'])
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+                checker = user == post['owner']
+                if(checker):
+                    comments = json.loads(post['comments'])
+                    id = str(com['id'])
+                    comments.pop(id)
+                    post['comments'] = json.dumps(comments)
+
+                    post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                    if(post_serializer.is_valid()):
+                        post_serializer.save()
+                        comment_QS.delete()
+                        return Response(data={"message":"comment deleted"}, status=status.HTTP_201_CREATED)
+                    return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response(
+                    data = {"message":"unauthorised delete"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
