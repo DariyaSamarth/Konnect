@@ -24,7 +24,9 @@ urlpatterns = [
     path('create-post/',views.createPost.as_view()),
     path('add-comment/',views.commentOnPost.as_view()),
     path('upvote-post/',views.upvotePost.as_view()),
+    path('downvote-post/',views.downvotePost.as_view()),
     path('upvote-comment/',views.upvoteComment.as_view()),
+    path('downvote-comment/',views.downvoteComment.as_view()),
     path('delete-comment/',views.deleteComment.as_view()),
     path('delete-post/',views.deletePost.as_view())
 ]

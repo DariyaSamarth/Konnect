@@ -17,6 +17,7 @@ class Post(models.Model):
     owner = models.ForeignKey("User",on_delete=models.CASCADE)
     date_created = models.DateField()
     upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)
     comments = models.JSONField(null=True)
     tags = models.JSONField(null=True)
 
@@ -26,3 +27,4 @@ class comment(models.Model):
     content = models.TextField()
     date_created = models.DateField()
     upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)

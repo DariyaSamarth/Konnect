@@ -180,6 +180,34 @@ class upvotePost(APIView):
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class downvotePost(APIView):
+    def put(self,request):
+        try:
+            post = request.query_params['post']
+            owner = request.data['owner']
+            flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
+
+            if(flag):
+                post_QS = Post.objects.get(id=post)
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+
+                post['downvotes']=post['downvotes']+1
+                post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                if(post_serializer.is_valid()):
+                    post_serializer.save()
+                    return Response(data={"message":"post downvoted"}, status=status.HTTP_200_OK)
+                return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class upvoteComment(APIView):
     def put(self,request):
         try:
@@ -198,6 +226,33 @@ class upvoteComment(APIView):
                 if(comment_serializer.is_valid()):
                     comment_serializer.save()
                     return Response(data={"message":"comment upvoted"}, status=status.HTTP_200_OK)
+                return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class downvoteComment(APIView):
+    def put(self,request):
+        try:
+            com = request.query_params['comment']
+            owner = request.data['owner']
+            flag = User.objects.filter(id=owner).exists() and comment.objects.filter(id=com).exists()
+            if(flag):
+                comment_QS = comment.objects.get(id=com)
+                comment_serializer = CommentSerializer(comment_QS)
+                comment_json = JSONRenderer().render(data=comment_serializer.data)
+                com = json.loads(comment_json)
+
+                com['downvotes']=com['downvotes']+1
+                comment_serializer = CommentSerializer(comment_QS,data=com,partial=True)
+
+                if(comment_serializer.is_valid()):
+                    comment_serializer.save()
+                    return Response(data={"message":"comment downvoted"}, status=status.HTTP_200_OK)
                 return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
