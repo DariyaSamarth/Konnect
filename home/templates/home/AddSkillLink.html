@@ -1,5 +1,10 @@
 {% extends "home/master.html" %}
 
+
+{% block homelink %}
+  <a class="nav-link" href="../konnect/?id={{id}}">Home</a>                
+{% endblock %}
+
 {% block profilelink %}
 <a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
 {% endblock %}

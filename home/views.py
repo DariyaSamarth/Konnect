@@ -37,7 +37,10 @@ class HomePage(APIView):
 class KonnectMain(APIView):
     def get(self,request):
         template = loader.get_template('home/konnect.html')
-        context = {}
+        id = request.query_params['id']
+        context = {
+            'id':id
+        }
         return HttpResponse(template.render(context, request))
 
 
@@ -150,7 +153,7 @@ class login(APIView):
                 if(flag):
                     response = HttpResponse("Cookie set and redirecting...")
                     response.set_cookie('mail_id', data['mail_id'], max_age=3600)
-                    return redirect(f'../user-profile/?id={user['id']}')
+                    return redirect(f'../konnect/?id={user['id']}')
                 else:
                     return Response(
                         data = {'message':'Password not matching'},
