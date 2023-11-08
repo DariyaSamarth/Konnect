@@ -1,11 +1,15 @@
 {% extends "home/master.html" %}
 
+{% block profilelink %}
+<a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
+{% endblock %}
+
 {% block content %}
  <h1>Skills</h1>
  <div >
-    <form action={{add_skill_link}} method="put">
+    <form action="../addSkill/" method="post">
       {% csrf_token %}
-      
+      <input type="hidden" name="id" id="id" value={{id}}>
       <label for="">Skill</label>
       <input type="text" name="skill" id="skill" required>
       <br><br>
@@ -16,9 +20,9 @@
   </div>
   <h1>Links</h1>
  <div >
-    <form action="#" method="post">
+    <form action="../addLink/" method="post">
       {% csrf_token %}
-      
+      <input type="hidden" name="id" id="id" value={{id}}>
       <label for="">Platform</label>
       <input type="text" name="link_key" id="link_key" required>
       <br><br>

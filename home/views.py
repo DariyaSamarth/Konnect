@@ -87,6 +87,7 @@ class UserProfile(APIView):
             user_links = json.loads(user['links'])
         detail_url = f'../LinkAndSkills/?id={user['id']}'
         context = {
+            'id':id,
             'user':user_details,
             'posts':user_posts,
             'skills':user_skills,
@@ -99,9 +100,8 @@ class AddSkillLink(APIView):
     def get(self,request):
         template = loader.get_template('home/AddSkillLink.html')
         id = request.query_params['id']
-        add_skill_link = f'../addSkill/?id={id}'
         context = {
-            'add_skill_link':add_skill_link
+            'id':id
         }
         return HttpResponse(template.render(context, request))
 
@@ -162,12 +162,12 @@ class login(APIView):
 
 
 class AddSkill(APIView):
-    def put(self,request):
+    def post(self,request):
         try:
             data = dict(request.data)
             for key in data:
                 data[key]=data[key][0]
-            id = request.query_params['id']
+            id = data['id']
 
             try:
                 user_QS = User.objects.get(id=id)
@@ -201,6 +201,47 @@ class AddSkill(APIView):
         except Exception as e:
             print(e)
             return Response(type(e).__name__,status =status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AddLink(APIView):
+    def post(self,request):
+        try:
+            data = dict(request.data)
+            for key in data:
+                data[key]=data[key][0]
+            id = data['id']
+
+            try:
+                user_QS = User.objects.get(id=id)
+                # finding the user
+            except Exception as e:
+                return Response(
+                        data = {'message':'User not found'},
+                        status= status.HTTP_404_NOT_FOUND
+                    ) 
+            
+            if(user_QS):
+                user_serializer = UserSerializer(user_QS)
+                user_json = JSONRenderer().render(data=user_serializer.data)
+                user = json.loads(user_json)
+
+                links = {}
+                if(user['links']):
+                    links = json.loads(user['links'])
+                links[data['link_key']]=data['link']
+                user['links'] = json.dumps(links)
+
+                user_serializer = UserSerializer(user_QS,data=user,partial=True)
+
+                if(user_serializer.is_valid()):
+                        user_serializer.save()
+                        return redirect(f'../user-profile/?id={user['id']}')
+            return Response(data=user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+        except Exception as e:
+            print(e)
+            return Response(type(e).__name__,status =status.HTTP_500_INTERNAL_SERVER_ERROR) 
+
 
 
 

@@ -1,5 +1,7 @@
 {% extends "home/master.html" %}
-
+{% block profilelink %}
+<a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
+{% endblock %}
 {% block content %}
   <h1>Profile</h1>
   <ul>
@@ -22,7 +24,7 @@
   <h1>Links</h1>
   <ul>
     {% for key,value in links.items %}
-      <li> {{value}}</li>
+    <li>{{ key }} ::  {{value}}</li>
     {% endfor %}
   </ul>
   <a href={{detail_url}}>

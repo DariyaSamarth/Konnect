@@ -39,6 +39,7 @@ urlpatterns = [
     path('downvote-post/',views.downvotePost.as_view()),
 
     path('addSkill/',views.AddSkill.as_view()),
+    path('addLink/',views.AddLink.as_view()),
 
     path('upvote-comment/',views.upvoteComment.as_view()),
     path('downvote-comment/',views.downvoteComment.as_view()),
