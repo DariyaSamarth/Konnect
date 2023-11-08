@@ -1,0 +1,33 @@
+{% extends "home/master.html" %}
+
+{% block content %}
+  <h1>Profile</h1>
+  <ul>
+    {% for key,value in user.items %}
+      <li>{{ key }} ::  {{value}}</li>
+    {% endfor %}
+  </ul>
+  <h1>Posts</h1>
+  <ul>
+    {% for key,value in posts.items %}
+      <li>{{value}}</li>
+    {% endfor %}
+  </ul>
+  <h1>Skills</h1>
+  <ul>
+    {% for key,value in skills.items %}
+      <li>{{value}}</li>
+    {% endfor %}
+  </ul>
+  <h1>Links</h1>
+  <ul>
+    {% for key,value in links.items %}
+      <li> {{value}}</li>
+    {% endfor %}
+  </ul>
+  <a href={{detail_url}}>
+    <button type="submit">
+        Add Details
+    </button>
+  </a>
+{% endblock %}

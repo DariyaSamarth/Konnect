@@ -19,14 +19,30 @@ from django.urls import path
 from home import views
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('',views.HomePage.as_view()),
+    path('konnect/',views.KonnectMain.as_view()),
+
+    path('user-profile/',views.UserProfile.as_view()),
+
+    path('SignInPage/',views.SignInPage.as_view()),
+    path('SignUpPage/',views.SignUpPage.as_view()),
+
+    path('LinkAndSkills/',views.AddSkillLink.as_view()),
+    
     path('register/',views.register.as_view()),
     path('login/',views.login.as_view()),
+
     path('create-post/',views.createPost.as_view()),
     path('add-comment/',views.commentOnPost.as_view()),
     path('upvote-post/',views.upvotePost.as_view()),
     path('downvote-post/',views.downvotePost.as_view()),
+
+    path('addSkill/',views.AddSkill.as_view()),
+
     path('upvote-comment/',views.upvoteComment.as_view()),
     path('downvote-comment/',views.downvoteComment.as_view()),
+
     path('delete-comment/',views.deleteComment.as_view()),
     path('delete-post/',views.deletePost.as_view())
 ]

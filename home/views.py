@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import loader
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -7,21 +9,121 @@ from django.contrib.auth.hashers import check_password,make_password
 from datetime import date
 from .models import *
 from .serializers import *
+from django.urls import reverse
 import json
 
 # Create your views here.
+
+class SignInPage(APIView):
+    def get(self,request):
+        template = loader.get_template('home/SignIn.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
+    
+class SignUpPage(APIView):
+    def get(self,request):
+        template = loader.get_template('home/SignUp.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
+
+
+
+class HomePage(APIView):
+    def get(self,request):
+        template = loader.get_template('home/home.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
+
+class KonnectMain(APIView):
+    def get(self,request):
+        template = loader.get_template('home/konnect.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
+
+
+
+class UserProfile(APIView):
+    def get(self,request):
+        template = loader.get_template('home/profile.html')
+        id = request.query_params['id']
+        try:
+            user_QS = User.objects.get(id=id)
+        except Exception as e:
+                return Response(
+                        data = {'message':'User not found'},
+                        status= status.HTTP_404_NOT_FOUND
+                    )
+        if(user_QS):
+                serializer = UserSerializer(user_QS)
+                user_json = JSONRenderer().render(data=serializer.data)
+                user = json.loads(user_json)
+        
+        user_details ={
+            'name' : user['name'],
+            'mail': user['mail_id'],
+            'skype': user['skype_id'],
+            'project':user['project']
+        }
+        try:
+            manager_QS = User.objects.get(id=user['manager'])
+        except Exception as e:
+                return Response(
+                        data = {'message':'Manager details incorrect'},
+                        status= status.HTTP_404_NOT_FOUND
+                    )
+        if(manager_QS):
+                serializer = UserSerializer(manager_QS)
+                manager_json = JSONRenderer().render(data=serializer.data)
+                manager = json.loads(manager_json)
+        user_details['manager'] = manager['name']
+        user_posts={}
+        user_links={}
+        user_skills={}
+        if(user['posts']):
+            user_posts = json.loads(user['posts'])
+        if(user['skills']):
+            user_skills = json.loads(user['skills'])
+        if(user['links']):
+            user_links = json.loads(user['links'])
+        detail_url = f'../LinkAndSkills/?id={user['id']}'
+        context = {
+            'user':user_details,
+            'posts':user_posts,
+            'skills':user_skills,
+            'links':user_links,
+            'detail_url':detail_url
+        }
+        return HttpResponse(template.render(context, request))
+
+class AddSkillLink(APIView):
+    def get(self,request):
+        template = loader.get_template('home/AddSkillLink.html')
+        id = request.query_params['id']
+        add_skill_link = f'../addSkill/?id={id}'
+        context = {
+            'add_skill_link':add_skill_link
+        }
+        return HttpResponse(template.render(context, request))
+
+
+
+
+#api that do not load a tempelate
 
 class register(APIView):
     # user has unique Email and Skype ID
     # user's password is hashed and stored
     def post(self,request):
         try:
-            data = request.data
+            data = dict(request.data)
+            for key in data:
+                data[key]=data[key][0]
             data['password']=make_password(data['password'])
+
             serializer = UserSerializer(data=data)
             if(serializer.is_valid()):
                 serializer.save()
-                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                return redirect('../SignInPage/')
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
@@ -30,7 +132,9 @@ class register(APIView):
 class login(APIView):
     def post(self,request):
         try:
-            data = request.data
+            data = dict(request.data)
+            for key in data:
+                data[key]=data[key][0]
             try:
                 user_QS = User.objects.get(mail_id=data['mail_id'])
             except Exception as e:
@@ -44,9 +148,9 @@ class login(APIView):
                 user = json.loads(user_json)
                 flag = check_password(data['password'],user['password'])
                 if(flag):
-                    return Response(
-                        data = user,status=status.HTTP_202_ACCEPTED
-                    )
+                    response = HttpResponse("Cookie set and redirecting...")
+                    response.set_cookie('mail_id', data['mail_id'], max_age=3600)
+                    return redirect(f'../user-profile/?id={user['id']}')
                 else:
                     return Response(
                         data = {'message':'Password not matching'},
@@ -55,6 +159,50 @@ class login(APIView):
         except Exception as e:
             print(e)
             return Response(type(e).__name__,status =status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AddSkill(APIView):
+    def put(self,request):
+        try:
+            data = dict(request.data)
+            for key in data:
+                data[key]=data[key][0]
+            id = request.query_params['id']
+
+            try:
+                user_QS = User.objects.get(id=id)
+                # finding the user
+            except Exception as e:
+                return Response(
+                        data = {'message':'User not found'},
+                        status= status.HTTP_404_NOT_FOUND
+                    ) 
+            
+            if(user_QS):
+                user_serializer = UserSerializer(user_QS)
+                user_json = JSONRenderer().render(data=user_serializer.data)
+                user = json.loads(user_json)
+
+                skills = {}
+                if(user['skills']):
+                    skills = json.loads(user['skills'])
+                key = len(skills)+1
+                skills[key]=data['skill']
+                user['skills']=json.dumps(skills)
+                user_serializer = UserSerializer(user_QS,data=user,partial=True)
+
+                if(user_serializer.is_valid()):
+                        user_serializer.save()
+                        return redirect(f'../user-profile/?id={user['id']}')
+            return Response(data=user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+        except Exception as e:
+            print(e)
+            return Response(type(e).__name__,status =status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 class createPost(APIView):
     # API for creating post
@@ -151,7 +299,9 @@ class commentOnPost(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status =status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+     
 class upvotePost(APIView):
     def put(self,request):
         try:
@@ -207,7 +357,9 @@ class downvotePost(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+  
 class upvoteComment(APIView):
     def put(self,request):
         try:
@@ -261,7 +413,9 @@ class downvoteComment(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+   
 class deleteComment(APIView):
     def delete(self,request):
         try:

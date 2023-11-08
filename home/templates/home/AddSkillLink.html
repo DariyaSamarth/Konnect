@@ -1,0 +1,33 @@
+{% extends "home/master.html" %}
+
+{% block content %}
+ <h1>Skills</h1>
+ <div >
+    <form action={{add_skill_link}} method="put">
+      {% csrf_token %}
+      
+      <label for="">Skill</label>
+      <input type="text" name="skill" id="skill" required>
+      <br><br>
+    
+      <button type="submit">Add Skill</button>
+
+    </form>
+  </div>
+  <h1>Links</h1>
+ <div >
+    <form action="#" method="post">
+      {% csrf_token %}
+      
+      <label for="">Platform</label>
+      <input type="text" name="link_key" id="link_key" required>
+      <br><br>
+      <label for="">Link</label>
+      <input type="text" name="link" id="link" required>
+      <br><br>
+    
+      <button type="submit">Add Link</button>
+
+    </form>
+  </div>
+{% endblock %}
