@@ -55,7 +55,7 @@ class KonnectMain(APIView):
             if(post.tags):
                 entry['tags']=post.tags
             posts.append(entry)
-
+        posts.reverse()
         context = {
             'id':id,
             'posts':posts
