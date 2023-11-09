@@ -29,6 +29,8 @@ urlpatterns = [
     path('SignUpPage/',views.SignUpPage.as_view()),
 
     path('LinkAndSkills/',views.AddSkillLink.as_view()),
+
+    path('PostDetail/',views.PostDetails.as_view()),
     
     path('register/',views.register.as_view()),
     path('login/',views.login.as_view()),

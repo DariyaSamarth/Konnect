@@ -8,6 +8,54 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Members</h1>
+  <div style="border: 2px solid;margin: 2px;padding: 2px;">
+    <form action="../create-post/" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="owner" id="owner" value={{id}}>
+        <input style="width: 99%;margin:auto;margin-bottom: 5px;" type="text" name="content" id="content" value="" placeholder="Write your thoughts here" required> 
+        <br>
+        <input type="text" name = "tag1" id="tag1" placeholder="tag it and make it">
+        <input type="text" name = "tag2" id="tag2" placeholder="tag it and make it">
+        <input type="text" name = "tag3" id="tag3" placeholder="tag it and make it">
+        <br><br>
+        <button type="submit">Add Post</button>
+    </form>
+  </div>
+  <h2>Posts for you</h2>
+  {% for post in posts %}
+      <div style="border: 2px solid;margin: 2px;padding: 2px;">
+        <h3>{{post.content}}</h3>
+        <p>posted by {{post.owner}}</p>
+        <p>
+          {% for key,value in post.tags.items %}
+          {{value}}
+          {% endfor %}
+        </p>
+
+        <form action="../upvote-post/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="id" id="id" value={{id}}>
+          <input type="hidden" name="post_id" id="post_id" value={{post.post_id}}>
+          <label for="">Upvote</label>
+          <button type="submit" style="color: green;">{{post.upvotes}}</button>
+        </form>
+
+        <form action="../downvote-post/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="id" id="id" value={{id}}>
+          <input type="hidden" name="post_id" id="post_id" value={{post.post_id}}>
+          <label for="">Downvote</label>
+          <button type="submit" style="color: red;">{{post.downvotes}}</button>
+        </form>
+
+        <form action="../PostDetail/" method="get">
+          {% csrf_token %}
+          <input type="hidden" name="id" id="id" value={{id}}>
+          <input type="hidden" name="post_id" id="post_id" value={{post.post_id}}>
+          <button type="submit" >See Details</button>
+        </form>
+
+      </div>
+    {% endfor %}
 
 {% endblock %}

@@ -36,10 +36,29 @@ class HomePage(APIView):
 
 class KonnectMain(APIView):
     def get(self,request):
+
         template = loader.get_template('home/konnect.html')
         id = request.query_params['id']
+
+        all_post_list = list(Post.objects.all())
+        posts = []
+
+        for post in all_post_list:
+            entry = {
+                'post_id':post.id,
+                'content':post.content,
+                'owner':post.owner.name,
+                'upvotes':post.upvotes,
+                'downvotes':post.downvotes,
+                'tags':{}
+            }
+            if(post.tags):
+                entry['tags']=post.tags
+            posts.append(entry)
+
         context = {
-            'id':id
+            'id':id,
+            'posts':posts
         }
         return HttpResponse(template.render(context, request))
 
@@ -108,6 +127,53 @@ class AddSkillLink(APIView):
         }
         return HttpResponse(template.render(context, request))
 
+class PostDetails(APIView):
+    def get(self,request):
+        template = loader.get_template('home/PostDetail.html')
+        id = request.query_params['id']
+        post_id = request.query_params['post_id']
+        try:
+            post_QS = Post.objects.get(id=post_id)
+        except Exception as e:
+                return Response(
+                        data = {'message':'Post not found'},
+                        status= status.HTTP_404_NOT_FOUND
+                    )
+        post_serializer = PostSerializer(post_QS)
+        post_json = JSONRenderer().render(data=post_serializer.data)
+        post = json.loads(post_json)
+
+        content = post['content']
+        owner = User.objects.filter(id=post['owner']).values_list('name', flat=True).get()
+        date = post['date_created']
+        upvotes = post['upvotes']
+        downvotes = post['downvotes']
+        tags = post['tags']
+
+        comment_list = list(comment.objects.filter(post = post_id))
+        comments = []
+        for comm in comment_list:
+            entry = {
+                'comment_id':comm.id,
+                'content':comm.content,
+                'owner':comm.owner.name,
+                'upvotes':comm.upvotes,
+                'downvotes':comm.downvotes
+            }
+            comments.append(entry)
+
+        context = {
+            'id':id,
+            'post_id':post_id,
+            'content':content,
+            'owner':owner,
+            'date':date,
+            'upvotes':upvotes,
+            'downvotes':downvotes,
+            'tags':tags,
+            'comments':comments
+        }
+        return HttpResponse(template.render(context, request))
 
 
 
@@ -252,7 +318,21 @@ class createPost(APIView):
     # API for creating post
     def post(self,request):
         try:
-            data = request.data
+            owner = request.data['owner']
+            content = request.data['content']
+            data = {
+                'owner':owner,
+                'content':content
+            }
+            tags = {}
+
+            if(request.data['tag1']):
+                tags['1'] = request.data['tag1']
+            if(request.data['tag2']):
+                tags['2'] = request.data['tag2']
+            if(request.data['tag3']):
+                tags['3'] = request.data['tag3']
+            data['tags'] = tags
             try:
                 user_QS = User.objects.get(id=data['owner'])
                 # finding the user
@@ -290,7 +370,7 @@ class createPost(APIView):
 
                     if(user_serializer.is_valid()):
                         user_serializer.save()
-                        return Response(data=post_serializer.data, status=status.HTTP_201_CREATED)
+                        return redirect(f'../konnect/?id={owner}')
                     return Response(data=user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -302,12 +382,15 @@ class commentOnPost(APIView):
     def post(self,request):
         try:
             # checking if owner and post exist
-            post = request.query_params['post']
-            owner = request.data['owner']
+            post = request.data['post_id']
+            owner = request.data['id']
+            content = request.data['content']
             flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
 
             if(flag):
-                data = request.data
+                data = {}
+                data['owner']=owner
+                data['content']=content
                 data['post']=post
                 data['date_created']= date.today()
                 comment_seializer = CommentSerializer(data=data)
@@ -334,7 +417,7 @@ class commentOnPost(APIView):
 
                     if(post_serializer.is_valid()):
                         post_serializer.save()
-                        return Response(data=comment_seializer.data, status=status.HTTP_201_CREATED)
+                        return redirect(f'../PostDetail/?id={data['owner']}&post_id={data['post']}')
                     return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
                 return Response(data=comment_seializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -347,14 +430,14 @@ class commentOnPost(APIView):
 
      
 class upvotePost(APIView):
-    def put(self,request):
+    def post(self,request):
         try:
-            post = request.query_params['post']
-            owner = request.data['owner']
-            flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
+            id = request.data['id']
+            post_id = request.data['post_id']
+            flag = Post.objects.filter(id=post_id).exists()
 
             if(flag):
-                post_QS = Post.objects.get(id=post)
+                post_QS = Post.objects.get(id=post_id)
                 post_serializer = PostSerializer(post_QS)
                 post_json = JSONRenderer().render(data=post_serializer.data)
                 post = json.loads(post_json)
@@ -364,7 +447,7 @@ class upvotePost(APIView):
 
                 if(post_serializer.is_valid()):
                     post_serializer.save()
-                    return Response(data={"message":"post upvoted"}, status=status.HTTP_200_OK)
+                    return redirect(f'../konnect/?id={id}')
                 return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
@@ -375,24 +458,22 @@ class upvotePost(APIView):
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class downvotePost(APIView):
-    def put(self,request):
+    def post(self,request):
         try:
-            post = request.query_params['post']
-            owner = request.data['owner']
-            flag = User.objects.filter(id=owner).exists() and Post.objects.filter(id=post).exists()
-
+            id = request.data['id']
+            post_id = request.data['post_id']
+            flag = Post.objects.filter(id=post_id).exists()
             if(flag):
-                post_QS = Post.objects.get(id=post)
+                post_QS = Post.objects.get(id=post_id)
                 post_serializer = PostSerializer(post_QS)
                 post_json = JSONRenderer().render(data=post_serializer.data)
                 post = json.loads(post_json)
-
                 post['downvotes']=post['downvotes']+1
                 post_serializer = PostSerializer(post_QS,data=post,partial=True)
 
                 if(post_serializer.is_valid()):
                     post_serializer.save()
-                    return Response(data={"message":"post downvoted"}, status=status.HTTP_200_OK)
+                    return redirect(f'../konnect/?id={id}')
                 return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
@@ -405,13 +486,14 @@ class downvotePost(APIView):
 
   
 class upvoteComment(APIView):
-    def put(self,request):
+    def post(self,request):
         try:
-            com = request.query_params['comment']
-            owner = request.data['owner']
-            flag = User.objects.filter(id=owner).exists() and comment.objects.filter(id=com).exists()
+            comment_id = request.data['comment_id']
+            id = request.data['id']
+            post_id = request.data['post_id']
+            flag = comment.objects.filter(id=comment_id).exists()
             if(flag):
-                comment_QS = comment.objects.get(id=com)
+                comment_QS = comment.objects.get(id=comment_id)
                 comment_serializer = CommentSerializer(comment_QS)
                 comment_json = JSONRenderer().render(data=comment_serializer.data)
                 com = json.loads(comment_json)
@@ -421,7 +503,7 @@ class upvoteComment(APIView):
 
                 if(comment_serializer.is_valid()):
                     comment_serializer.save()
-                    return Response(data={"message":"comment upvoted"}, status=status.HTTP_200_OK)
+                    return redirect(f'../PostDetail/?id={id}&post_id={post_id}')
                 return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
@@ -432,13 +514,14 @@ class upvoteComment(APIView):
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class downvoteComment(APIView):
-    def put(self,request):
+    def post(self,request):
         try:
-            com = request.query_params['comment']
-            owner = request.data['owner']
-            flag = User.objects.filter(id=owner).exists() and comment.objects.filter(id=com).exists()
+            comment_id = request.data['comment_id']
+            id = request.data['id']
+            post_id = request.data['post_id']
+            flag = comment.objects.filter(id=comment_id).exists()
             if(flag):
-                comment_QS = comment.objects.get(id=com)
+                comment_QS = comment.objects.get(id=comment_id)
                 comment_serializer = CommentSerializer(comment_QS)
                 comment_json = JSONRenderer().render(data=comment_serializer.data)
                 com = json.loads(comment_json)
@@ -448,7 +531,7 @@ class downvoteComment(APIView):
 
                 if(comment_serializer.is_valid()):
                     comment_serializer.save()
-                    return Response(data={"message":"comment downvoted"}, status=status.HTTP_200_OK)
+                    return redirect(f'../PostDetail/?id={id}&post_id={post_id}')
                 return Response(data=comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
