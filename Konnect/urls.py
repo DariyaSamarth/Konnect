@@ -38,6 +38,8 @@ urlpatterns = [
     path('create-post/',views.createPost.as_view()),
     path('add-comment/',views.commentOnPost.as_view()),
     path('upvote-post/',views.upvotePost.as_view()),
+    path('upvote-post-new/',views.upvoteNew.as_view),
+
     path('downvote-post/',views.downvotePost.as_view()),
 
     path('addSkill/',views.AddSkill.as_view()),

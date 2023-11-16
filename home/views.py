@@ -81,10 +81,10 @@ class UserProfile(APIView):
                 user = json.loads(user_json)
         
         user_details ={
-            'name' : user['name'],
-            'mail': user['mail_id'],
-            'skype': user['skype_id'],
-            'project':user['project']
+            'Name' : user['name'],
+            'Mail': user['mail_id'],
+            'Skype': user['skype_id'],
+            'Project':user['project']
         }
         try:
             manager_QS = User.objects.get(id=user['manager'])
@@ -97,7 +97,7 @@ class UserProfile(APIView):
                 serializer = UserSerializer(manager_QS)
                 manager_json = JSONRenderer().render(data=serializer.data)
                 manager = json.loads(manager_json)
-        user_details['manager'] = manager['name']
+        user_details['Manager'] = manager['name']
         user_posts={}
         user_links={}
         user_skills={}
@@ -457,6 +457,35 @@ class upvotePost(APIView):
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+    def put(self,request):
+        try:
+            print('reaching here')
+            data = request.data
+            post_id = data['post_id']
+
+            flag = Post.objects.filter(id=post_id).exists()
+
+            if(flag):
+                post_QS = Post.objects.get(id=post_id)
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+
+                post['upvotes']=post['upvotes']+1
+                post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                if(post_serializer.is_valid()):
+                    post_serializer.save()
+                    response = {
+                        'upvotes':post['upvotes']
+                    }
+                    return Response(response,status=status.HTTP_200_OK)
+                return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class downvotePost(APIView):
     def post(self,request):
         try:
@@ -634,6 +663,17 @@ class deletePost(APIView):
                 )                
             
             return Response(data={"message":"owner or comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class upvoteNew(APIView):
+    def post(self,request):
+        try:
+            data = request.data
+            print(data)
+            return Response("all ok",status=status.HTTP_200_OK)
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)

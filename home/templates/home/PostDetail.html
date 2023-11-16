@@ -5,74 +5,72 @@
 {% endblock %}
 
 {% block profilelink %}
-<a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
+  <a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
 {% endblock %}
 
 {% block content %}
-  <h1>Post Details for {{owner}}'s post</h1>
-  <br>
-  <div style="border: 2px solid;padding: 2px;margin: 2px;">
-        <h3>{{content}}</h3>
-        <p>posted on {{date}}</p>
-        <p>tagged with 
-            {% for key,value in tags.items %}
-            <i>{{value}}&nbsp</i>
-            {% endfor %}
-        </p>
-        <form action="../upvote-post/" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="id" id="id" value={{id}}>
-            <input type="hidden" name="post_id" id="post_id" value={{post_id}}>
-            <label for="">Upvote</label>
-            <button type="submit" style="color: green;">{{upvotes}}</button>
-          </form>
-  
-          <form action="../downvote-post/" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="id" id="id" value={{id}}>
-            <input type="hidden" name="post_id" id="post_id" value={{post_id}}>
-            <label for="">Downvote</label>
-            <button type="submit" style="color: red;">{{downvotes}}</button>
-          </form>
+  <div class="container">
+    <h1 class="mt-4">Post Details for {{ owner }}'s post</h1>
+    <div class="border rounded p-3 mb-4">
+      <h3>{{ content }}</h3>
+      <p>Posted on {{ date }}</p>
+      <p>Tagged with 
+        {% for key, value in tags.items %}
+          <span class="badge bg-secondary">{{ value }}</span>
+        {% endfor %}
+      </p>
+
+      <button type="submit" class="btn btn-success postupvoter mb-2" id="{{ post_id }}">Upvote {{ upvotes }}</button>
+
+      <form action="../downvote-post/" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" id="id" value={{ id }}>
+        <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
+        <button type="submit" class="btn btn-danger">Downvote {{ downvotes }}</button>
+      </form>
     </div>
-  <p>read the comments below</p>
 
-  {% for comment in comments %}
-      <div style="border: 2px solid;margin: 2px;padding: 2px;margin-left: 50px;">
-        <p><b>{{comment.content}}</b></p>
-        <p>posted by {{comment.owner}}</p>
+    <h3 class="mt-4">Comments</h3>
+
+    {% for comment in comments %}
+      <div class="border rounded p-3 mb-3 ms-4">
+        <p class="fw-bold">{{ comment.content }}</p>
+        <p>Posted by {{ comment.owner }}</p>
         
-
         <form action="../upvote-comment/" method="post">
           {% csrf_token %}
-          <input type="hidden" name="id" id="id" value={{id}}>
-          <input type="hidden" name="post_id" id="post_id" value={{post_id}}>
-          <input type="hidden" name="comment_id" id="comment_id" value={{comment.comment_id}}>
-          <label for="">Upvote</label>
-          <button type="submit" style="color: green;">{{comment.upvotes}}</button>
+          <input type="hidden" name="id" id="id" value={{ id }}>
+          <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
+          <input type="hidden" name="comment_id" id="comment_id" value={{ comment.comment_id }}>
+          <button type="submit" class="btn btn-success">Upvote {{ comment.upvotes }}</button>
         </form>
 
         <form action="../downvote-comment/" method="post">
           {% csrf_token %}
-          <input type="hidden" name="id" id="id" value={{id}}>
-          <input type="hidden" name="post_id" id="post_id" value={{post_id}}>
-          <input type="hidden" name="comment_id" id="comment_id" value={{comment.comment_id}}>
-          <label for="">Downvote</label>
-          <button type="submit" style="color: red;">{{comment.downvotes}}</button>
+          <input type="hidden" name="id" id="id" value={{ id }}>
+          <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
+          <input type="hidden" name="comment_id" id="comment_id" value={{ comment.comment_id }}>
+          <button type="submit" class="btn btn-danger"> Downvote {{ comment.downvotes }}</button>
         </form>
-
       </div>
     {% endfor %}
 
-    <div style="border: 2px solid;margin: 2px;padding: 2px;margin-left: 50px;margin-top: 10px;">
-        <form action="../add-comment/" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="id" id="id" value={{id}}>
-            <input type="hidden" name="post_id" id="post_id" value={{post_id}}>
-            <input style="width: 90%;" type="text" name="content" id="content" value="" placeholder="Write your comment here" required> 
-            <br><br>
-            <button type="submit">Add Comment</button>
-        </form>
+    <div class="border rounded p-3 ms-4 mt-3">
+      <form action="../add-comment/" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" id="id" value={{ id }}>
+        <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
+        <input class="w-75 mb-2" type="text" name="content" id="content" value="" placeholder="Write your comment here" required>
+        <br><br>
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+      </form>
     </div>
-
+  </div>
 {% endblock %}
+
+{% load static %}
+{% block script %}
+<script>let CsrfToken= `{{csrf_token}}`</script>
+<script src="{% static 'PostDetail.js' %}"></script>
+{% endblock %}
+

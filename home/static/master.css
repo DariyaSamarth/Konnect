@@ -1,0 +1,25 @@
+body {
+    background-color: #f8f9fa; 
+}
+
+.navbar {
+    background-color: #007bff; 
+    color: white;
+}
+
+.navbar span {
+    font-weight: bold;
+}
+
+.navbar-nav a {
+    color: white;
+}
+
+.navbar-nav a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.container {
+    margin-top: 20px; 
+}
