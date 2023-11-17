@@ -26,9 +26,7 @@ for(let i =0;i<UpvoteBtn.length;i++){
 }
 
 function Upvoter(post_id,button){
-    console.log(button.innerHTML)
-    console.log(post_id)
-    console.log('clicked upvo9te button')
+    
     let xhr = new XMLHttpRequest()
 
     xhr.open('PUT','../upvote-post/',true)
@@ -45,9 +43,7 @@ function Upvoter(post_id,button){
     xhr.onload = function () {
         if (xhr.status >= 200 && xhr.status < 300) {
             
-            console.log('PUT request successful');
             let obj = JSON.parse(xhr.response)
-            console.log(obj['upvotes']);
             button.innerHTML = "Upvote "+obj['upvotes']
         } else {
             console.error('PUT request failed with status:', xhr.status);
@@ -61,3 +57,84 @@ function Upvoter(post_id,button){
 
     xhr.send(jsonData);
 }
+
+
+$(document).ready(function() {
+    console.log('Jquery loaded')
+
+    $('.postdownvoter').click(function(){
+
+        let clickedElement = $(this);
+
+        data = {
+            post_id:this.id
+        }
+
+        $.ajax({
+            url: '../downvote-post/',
+            method: 'PUT',
+            dataType: 'json',
+            data: data,
+            headers: { 'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val() },
+            success: function(data) {
+              // Handle the successful response
+              clickedElement.html('Downvote ' + data.downvotes);
+            },
+            error: function(xhr, status, error) {
+              // Handle errors
+              console.error('AJAX request failed: ' + status + ', ' + error);
+            }
+          });
+    })
+
+    $('.commentdownvoter').click(function(){
+
+        let clickedElement = $(this);
+
+        data = {
+            comment_id:this.id
+        }
+
+        $.ajax({
+            url: '../downvote-comment/',
+            method: 'PUT',
+            dataType: 'json',
+            data: data,
+            headers: { 'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val() },
+            success: function(data) {
+              // Handle the successful response
+              clickedElement.html('Downvote ' + data.downvotes);
+            },
+            error: function(xhr, status, error) {
+              // Handle errors
+              console.error('AJAX request failed: ' + status + ', ' + error);
+            }
+          });
+    })
+
+    $('.commentupvoter').click(function(){
+
+        let clickedElement = $(this);
+
+        data = {
+            comment_id:this.id
+        }
+
+        $.ajax({
+            url: '../upvote-comment/',
+            method: 'PUT',
+            dataType: 'json',
+            data: data,
+            headers: { 'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val() },
+            success: function(data) {
+              // Handle the successful response
+              clickedElement.html('Upvote ' + data.upvotes);
+            },
+            error: function(xhr, status, error) {
+              // Handle errors
+              console.error('AJAX request failed: ' + status + ', ' + error);
+            }
+          });
+    })
+
+})

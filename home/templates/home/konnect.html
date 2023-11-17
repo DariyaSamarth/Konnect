@@ -1,63 +1,60 @@
 {% extends "home/master.html" %}
 
 {% block homelink %}
-  <a class="nav-link" href="../konnect/?id={{id}}">Home</a>
+<a class="nav-link" href="../konnect/?id={{id}}">Home</a>
 {% endblock %}
 
 {% block profilelink %}
-  <a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
+<a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
 {% endblock %}
 
 {% block content %}
-  <div class="border rounded p-2 mb-4">
-    <form action="../create-post/" method="post">
-      {% csrf_token %}
-      <input type="hidden" name="owner" id="owner" value={{id}}>
-      <input class="w-100 mb-2" type="text" name="content" id="content" placeholder="Ask your queries here" required> 
-      <div class="d-flex">
-        <input class="flex-grow-1 me-2" type="text" name="tag1" id="tag1" placeholder="Tag it and make it">
-        <input class="flex-grow-1 me-2" type="text" name="tag2" id="tag2" placeholder="Tag it and make it">
-        <input class="flex-grow-1" type="text" name="tag3" id="tag3" placeholder="Tag it and make it">
-      </div>
-      <br>
-      <button class="btn btn-primary" type="submit">Add Post</button>
-    </form>
-  </div>
-  <h2>Posts for you</h2>
-  {% for post in posts %}
-    <div class="border rounded p-2 mb-4">
-      <h3>{{ post.content }}</h3>
-      <p>Posted by {{ post.owner }}</p>
-      <p>
-        {% for key, value in post.tags.items %}
-        <span class="bg-secondary text-light px-2 py-1 rounded me-2">
-          {{ value }}
-        </span>
-        {% endfor %}
-      </p>
-      <button type="submit" class="btn btn-success upvoter mb-2" id="{{ post.post_id }}">Upvote {{ post.upvotes }}</button>
-      
-      <form action="../downvote-post/" method="post" class="mb-2">
-        {% csrf_token %}
-        <input type="hidden" name="id" id="id" value={{ id }}>
-        <input type="hidden" name="post_id" id="post_id" value={{ post.post_id }}>
-        <button type="submit" class="btn btn-danger">Downvote {{ post.downvotes }}</button>
-      </form>
-
-      <form action="../PostDetail/" method="get">
-        {% csrf_token %}
-        <input type="hidden" name="id" id="id" value={{ id }}>
-        <input type="hidden" name="post_id" id="post_id" value={{ post.post_id }}>
-        <button type="submit" class="btn btn-primary">See Details</button>
-      </form>
+<div class="border rounded p-2 mb-4">
+  <form action="../create-post/" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="owner" id="owner" value={{id}}>
+    <input class="w-100 mb-2" type="text" name="content" id="content" placeholder="Ask your queries here" required>
+    <div class="d-flex">
+      <input class="flex-grow-1 me-2" type="text" name="tag1" id="tag1" placeholder="Tag it and make it">
+      <input class="flex-grow-1 me-2" type="text" name="tag2" id="tag2" placeholder="Tag it and make it">
+      <input class="flex-grow-1" type="text" name="tag3" id="tag3" placeholder="Tag it and make it">
     </div>
-  {% endfor %}
+    <br>
+    <button class="btn btn-primary" type="submit">Add Post</button>
+  </form>
+</div>
+<h2>Posts for you</h2>
+{% for post in posts %}
+<div class="border rounded p-2 mb-4">
+  <h3>{{ post.content }}</h3>
+  <p>Posted by {{ post.owner }}</p>
+  <p>
+    {% for key, value in post.tags.items %}
+    <span class="bg-secondary text-light px-2 py-1 rounded me-2">
+      {{ value }}
+    </span>
+    {% endfor %}
+  </p>
+  <button type="submit" class="btn btn-success upvoter mb-2" id="{{ post.post_id }}">Upvote {{ post.upvotes }}</button>
+  <button type="submit" class="btn btn-danger downvoter mb-2" id="{{post.post_id}}">Downvote {{post.downvotes}}</button>
+
+  <form action="../PostDetail/" method="get">
+    {% csrf_token %}
+    <input type="hidden" name="id" id="id" value={{ id }}>
+    <input type="hidden" name="post_id" id="post_id" value={{ post.post_id }}>
+    <button type="submit" class="btn btn-primary">See Details</button>
+  </form>
+</div>
+{% endfor %}
 
 
 {% endblock %}
 
 {% load static %}
 {% block script %}
-<script>let CsrfToken= `{{csrf_token}}`</script>
+<script>let CsrfToken = `{{csrf_token}}`</script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
 <script src="{% static 'konnect.js' %}"></script>
+<script src="{% static 'konnect2.js' %}"></script>
 {% endblock %}

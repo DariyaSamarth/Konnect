@@ -1,76 +1,62 @@
 {% extends "home/master.html" %}
 
 {% block homelink %}
-  <a class="nav-link" href="../konnect/?id={{id}}">Home</a>                
+<a class="nav-link" href="../konnect/?id={{id}}">Home</a>
 {% endblock %}
 
 {% block profilelink %}
-  <a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
+<a class="nav-link" href="../user-profile/?id={{id}}">My Profile</a>
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1 class="mt-4">Post Details for {{ owner }}'s post</h1>
-    <div class="border rounded p-3 mb-4">
-      <h3>{{ content }}</h3>
-      <p>Posted on {{ date }}</p>
-      <p>Tagged with 
-        {% for key, value in tags.items %}
-          <span class="badge bg-secondary">{{ value }}</span>
-        {% endfor %}
-      </p>
+<div class="container">
+  <h1 class="mt-4">Post Details for {{ owner }}'s post</h1>
 
-      <button type="submit" class="btn btn-success postupvoter mb-2" id="{{ post_id }}">Upvote {{ upvotes }}</button>
+  <div class="border rounded p-3 mb-4">
+    <h3>{{ content }}</h3>
+    <p>Posted on {{ date }}</p>
+    <p>Tagged with
+      {% for key, value in tags.items %}
+      <span class="badge bg-secondary">{{ value }}</span>
+      {% endfor %}
+    </p>
 
-      <form action="../downvote-post/" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="id" id="id" value={{ id }}>
-        <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
-        <button type="submit" class="btn btn-danger">Downvote {{ downvotes }}</button>
-      </form>
-    </div>
+    <button type="submit" class="btn btn-success postupvoter mb-2" id="{{ post_id }}">Upvote {{ upvotes }}</button>
+    <button type="submit" class="btn btn-danger postdownvoter mb-2" id="{{ post_id }}">Downvote {{ downvotes }}</button>
 
-    <h3 class="mt-4">Comments</h3>
-
-    {% for comment in comments %}
-      <div class="border rounded p-3 mb-3 ms-4">
-        <p class="fw-bold">{{ comment.content }}</p>
-        <p>Posted by {{ comment.owner }}</p>
-        
-        <form action="../upvote-comment/" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="id" id="id" value={{ id }}>
-          <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
-          <input type="hidden" name="comment_id" id="comment_id" value={{ comment.comment_id }}>
-          <button type="submit" class="btn btn-success">Upvote {{ comment.upvotes }}</button>
-        </form>
-
-        <form action="../downvote-comment/" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="id" id="id" value={{ id }}>
-          <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
-          <input type="hidden" name="comment_id" id="comment_id" value={{ comment.comment_id }}>
-          <button type="submit" class="btn btn-danger"> Downvote {{ comment.downvotes }}</button>
-        </form>
-      </div>
-    {% endfor %}
-
-    <div class="border rounded p-3 ms-4 mt-3">
-      <form action="../add-comment/" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="id" id="id" value={{ id }}>
-        <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
-        <input class="w-75 mb-2" type="text" name="content" id="content" value="" placeholder="Write your comment here" required>
-        <br><br>
-        <button type="submit" class="btn btn-primary">Add Comment</button>
-      </form>
-    </div>
   </div>
+
+  <h3 class="mt-4">Comments</h3>
+
+  {% for comment in comments %}
+  <div class="border rounded p-3 mb-3 ms-4">
+    <p class="fw-bold">{{ comment.content }}</p>
+    <p>Posted by {{ comment.owner }}</p>
+
+    <button type="submit" class="btn btn-success commentupvoter mb-2" id="{{ comment.comment_id }}">Upvote {{ comment.upvotes }}</button>
+    <button type="submit" class="btn btn-danger commentdownvoter mb-2" id="{{ comment.comment_id }}">Downvote {{ comment.downvotes }}</button>
+
+  </div>
+  {% endfor %}
+
+  <div class="border rounded p-3 ms-4 mt-3">
+    <form action="../add-comment/" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="id" id="id" value={{ id }}>
+      <input type="hidden" name="post_id" id="post_id" value={{ post_id }}>
+      <input class="w-75 mb-2" type="text" name="content" id="content" value="" placeholder="Write your comment here"
+        required>
+      <br><br>
+      <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% load static %}
 {% block script %}
-<script>let CsrfToken= `{{csrf_token}}`</script>
+<script>let CsrfToken = `{{csrf_token}}`</script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
 <script src="{% static 'PostDetail.js' %}"></script>
 {% endblock %}
-

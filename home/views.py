@@ -1,5 +1,5 @@
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -459,7 +459,6 @@ class upvotePost(APIView):
         
     def put(self,request):
         try:
-            print('reaching here')
             data = request.data
             post_id = data['post_id']
 
@@ -511,6 +510,36 @@ class downvotePost(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def put(self,request):
+        try:
+            
+            data = dict(request.data)
+            post_id = data['post_id'][0]
+            flag = Post.objects.filter(id=post_id).exists()
+
+            if(flag):
+                post_QS = Post.objects.get(id=post_id)
+                post_serializer = PostSerializer(post_QS)
+                post_json = JSONRenderer().render(data=post_serializer.data)
+                post = json.loads(post_json)
+
+                post['downvotes']=post['downvotes']+1
+                post_serializer = PostSerializer(post_QS,data=post,partial=True)
+
+                if(post_serializer.is_valid()):
+                    post_serializer.save()
+                    response = {
+                        'downvotes':post['downvotes']
+                    }
+                    return Response(response,status=status.HTTP_200_OK)
+                return Response(data=post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"message":"owner or post data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+        except Exception as e:
+            print(e)
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
   
@@ -541,6 +570,41 @@ class upvoteComment(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self,request):
+        try:
+            
+            data = dict(request.data)
+            comment_id = data['comment_id'][0]
+            flag = comment.objects.filter(id=comment_id).exists()
+
+            if(flag):
+                comm_QS = comment.objects.get(id=comment_id)
+                comm_serializer = CommentSerializer(comm_QS)
+                comm_json = JSONRenderer().render(data=comm_serializer.data)
+                comm = json.loads(comm_json)
+
+                comm['upvotes']=comm['upvotes']+1
+                comm_serializer = CommentSerializer(comm_QS,data=comm,partial=True)
+
+                if(comm_serializer.is_valid()):
+                    comm_serializer.save()
+                    response = {
+                        'upvotes':comm['upvotes']
+                    }
+                    return Response(response,status=status.HTTP_200_OK)
+                return Response(data=comm_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"message":"comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+        except Exception as e:
+            print(e)
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
         
 class downvoteComment(APIView):
     def post(self,request):
@@ -569,6 +633,37 @@ class downvoteComment(APIView):
         except Exception as e:
             print(str(e))
             return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def put(self,request):
+        try:
+            
+            data = dict(request.data)
+            comment_id = data['comment_id'][0]
+            flag = comment.objects.filter(id=comment_id).exists()
+
+            if(flag):
+                comm_QS = comment.objects.get(id=comment_id)
+                comm_serializer = CommentSerializer(comm_QS)
+                comm_json = JSONRenderer().render(data=comm_serializer.data)
+                comm = json.loads(comm_json)
+
+                comm['downvotes']=comm['downvotes']+1
+                comm_serializer = CommentSerializer(comm_QS,data=comm,partial=True)
+
+                if(comm_serializer.is_valid()):
+                    comm_serializer.save()
+                    response = {
+                        'downvotes':comm['downvotes']
+                    }
+                    return Response(response,status=status.HTTP_200_OK)
+                return Response(data=comm_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"message":"comment data incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+        except Exception as e:
+            print(e)
+            return Response(str(e),status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
    

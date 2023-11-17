@@ -19,20 +19,18 @@ function getCookie(name) {
 
 
 let UpvoteBtn = document.getElementsByClassName('upvoter')
-for(let i =0;i<UpvoteBtn.length;i++){
+for (let i = 0; i < UpvoteBtn.length; i++) {
     let post_id = UpvoteBtn[i].id
-    UpvoteBtn[i].addEventListener('click',()=>{
-        Upvoter(post_id,UpvoteBtn[i])
+    UpvoteBtn[i].addEventListener('click', () => {
+        Upvoter(post_id, UpvoteBtn[i])
     });
 }
 
-function Upvoter(post_id,button){
-    console.log(button.innerHTML)
-    console.log(post_id)
-    console.log('clicked upvo9te button')
+function Upvoter(post_id, button) {
+
     let xhr = new XMLHttpRequest()
 
-    xhr.open('PUT','../upvote-post/',true)
+    xhr.open('PUT', '../upvote-post/', true)
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader("x-csrftoken", getCookie('csrftoken'));
     let data = {
@@ -40,25 +38,25 @@ function Upvoter(post_id,button){
     };
 
 
-    
+
     let jsonData = JSON.stringify(data);
 
     xhr.onload = function () {
         if (xhr.status >= 200 && xhr.status < 300) {
-            
-            console.log('PUT request successful');
+
+            // console.log('PUT request successful');
             let obj = JSON.parse(xhr.response)
-            console.log(obj['upvotes']);
-            button.innerHTML = "Upvote "+obj['upvotes']
+            button.innerHTML = "Upvote " + obj['upvotes']
         } else {
             console.error('PUT request failed with status:', xhr.status);
         }
     };
-    
+
     xhr.onerror = function () {
         console.error('Network error occurred');
     };
-    
+
 
     xhr.send(jsonData);
 }
+
